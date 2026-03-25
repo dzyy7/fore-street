@@ -1,65 +1,118 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useCallback, useEffect, useRef } from "react";
+import Navbar from "@/components/ui/Navbar";
+import Preloader from "@/components/ui/Preloader";
+import SequenceScroll from "@/components/menu/SequenceScroll";
+import AboutSection from "@/components/about/AboutSection";
+import BentoGrid from "@/components/home/BentoGrid";
+import Stats from "@/components/home/Stats";
+import Testimonials from "@/components/home/Testimonials";
+import CTASection from "@/components/home/CTASection";
+import Footer from "@/components/ui/Footer";
+import { motion } from "motion/react";
+/* ── Custom cursor (desktop only) ── */
+function Cursor() {
+  const dotRef = useRef<HTMLDivElement>(null);
+  const xRef = useRef(0),
+    yRef = useRef(0);
+  const cxRef = useRef(0),
+    cyRef = useRef(0);
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      xRef.current = e.clientX;
+      yRef.current = e.clientY;
+    };
+    window.addEventListener("mousemove", onMove);
+    let raf: number;
+    const tick = () => {
+      cxRef.current += (xRef.current - cxRef.current) * 0.15;
+      cyRef.current += (yRef.current - cyRef.current) * 0.15;
+      if (dotRef.current)
+        dotRef.current.style.transform = `translate(${cxRef.current - 6}px, ${cyRef.current - 6}px)`;
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div
+      ref={dotRef}
+      className="fixed top-0 left-0 w-3 h-3 rounded-full pointer-events-none z-[9997] hidden md:block mix-blend-difference"
+      style={{ background: "var(--green-accent)", willChange: "transform" }}
+    />
+  );
+}
+
+/* ── Page ── */
+export default function Home() {
+  const [loadProgress, setLoadProgress] = useState(0);
+  const [loadComplete, setLoadComplete] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+
+  const handleProgress = useCallback((p: number) => setLoadProgress(p), []);
+  const handleComplete = useCallback(() => {
+    setLoadComplete(true);
+    setTimeout(() => setRevealed(true), 1200);
+  }, []);
+
+  return (
+    <>
+      <Cursor />
+      <Preloader progress={loadProgress} isComplete={loadComplete} />
+      <Navbar />
+
+      <motion.main
+        initial={{ opacity: 0 }}
+        animate={{ opacity: revealed ? 1 : 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        {/* ── Hero: 400vh scroll canvas ── */}
+        <SequenceScroll
+          onLoadProgress={handleProgress}
+          onLoadComplete={handleComplete}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+
+        {/*
+          All sections below sit in a z-10 wrapper that
+          pulls up by 100vh to overlap the tail end of the hero.
+          Each section carries its own background — no wrapper bg needed.
+        */}
+        <div className="-mt-[100vh] relative z-10">
+          {/* Gradient bridge: canvas-dark → cream */}
+          <div
+            style={{
+              height: "100vh",
+              background:
+                "linear-gradient(to bottom, var(--canvas-bg) 0%, var(--bg-light) 100%)",
+              pointerEvents: "none",
+            }}
+          />
+
+          {/* About — cream bg */}
+          <AboutSection />
+
+          {/* Bento grid — dark bg (self-contained) */}
+          <BentoGrid />
+
+          {/* Stats — green bg */}
+          <Stats />
+
+          {/* Testimonials — fullscreen */}
+          <Testimonials />
+
+          {/* CTA — dark bg */}
+          <CTASection />
+
+          {/* Footer */}
+          <Footer />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </motion.main>
+    </>
   );
 }

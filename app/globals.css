@@ -1,26 +1,143 @@
+/* ─────────────────────────────────────────────────────────
+   RULE FOR TAILWIND v4:
+   @import "tailwindcss" MUST be the very first line.
+   Google Fonts must NOT use @import here — load via next/font
+   in layout.tsx instead.
+───────────────────────────────────────────────────────── */
 @import "tailwindcss";
 
+/* ── Design tokens ── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-dark: #0c0905;
+  --bg-mid: #1a1108;
+  --bg-light: #f4ebe0;
+  --bg-cream: #faf5ee;
+
+  --brown-deep: #3d1a0a;
+  --brown-mid: #7c4a2b;
+  --brown-accent: #c4895a;
+  --brown-pale: #e8d2b8;
+
+  --green-deep: #1a3325;
+  --green-mid: #2a5a3e;
+  --green-accent: #3d8a60;
+  --green-pale: #a8d4b8;
+
+  --cream: #f4ebe0;
+  --cream-dark: #e8d8c4;
+  --text-light: #f4ebe0;
+  --text-dark: #0c0905;
+  --text-muted: #9a7b62;
+
+  --canvas-bg: #0c0905;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ── Base resets (inside Tailwind layer so Preflight wins) ── */
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background: var(--bg-dark);
+    color: var(--text-light);
+    font-family: var(--font-outfit), "Outfit", sans-serif;
+    overflow-x: hidden;
+  }
+
+  img,
+  video {
+    display: block;
+    max-width: 100%;
+  }
+
+  ::selection {
+    background: var(--green-mid);
+    color: var(--cream);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--green-accent);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 3px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--green-mid);
+    border-radius: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── Grain overlay ── */
+@layer utilities {
+  .grain::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.3;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+}
+
+/* ── Marquee animation ── */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee 20s linear infinite;
+}
+
+/* ── CTA animated gradient background ── */
+@keyframes gradShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.cta-bg {
+  background: linear-gradient(
+    135deg,
+    var(--bg-dark),
+    var(--green-deep),
+    var(--brown-deep),
+    var(--green-mid)
+  );
+  background-size: 400% 400%;
+  animation: gradShift 8s ease infinite;
+}
+
+/* ── Bento card hover (pure CSS, no Tailwind group needed) ── */
+.bento-card:hover .bento-img {
+  transform: scale(1.05);
+}
+.bento-card:hover .bento-desc {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+.bento-card:hover .bento-arrow {
+  opacity: 1 !important;
+  transform: scale(1) !important;
 }
